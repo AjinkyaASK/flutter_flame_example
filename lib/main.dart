@@ -1,3 +1,6 @@
+import 'dart:developer';
+
+import 'package:flame/collisions.dart';
 import 'package:flame/components.dart';
 import 'package:flame/flame.dart';
 import 'package:flame/game.dart';
@@ -24,7 +27,11 @@ class MyApp extends StatelessWidget {
   }
 }
 
-class WoodRunner extends FlameGame with TapDetector {
+class WoodRunner extends FlameGame with TapDetector, HasCollisionDetection {
+  WoodRunner() {
+    debugMode = true;
+  }
+
   late final Component floor;
   late final Component background;
   late final PlayerCharacter player;
@@ -103,7 +110,7 @@ class WoodRunner extends FlameGame with TapDetector {
   }
 }
 
-class PlayerCharacter extends SpriteAnimationComponent {
+class PlayerCharacter extends SpriteAnimationComponent with CollisionCallbacks {
   PlayerCharacter({
     super.size,
     super.position,
@@ -118,7 +125,7 @@ class PlayerCharacter extends SpriteAnimationComponent {
   late final SpriteAnimation runAnimation;
   late final SpriteAnimation attackAnimation;
 
-  final double jumpHeight = 100;
+  final double jumpHeight = 80;
 
   Future<void> init() async {
     spriteSheet = SpriteSheet.fromColumnsAndRows(
@@ -142,6 +149,15 @@ class PlayerCharacter extends SpriteAnimationComponent {
     run();
   }
 
+  @override
+  Future<void>? onLoad() {
+    add(RectangleHitbox(
+      position: Vector2(size.x * 0.35, size.y * 0.4),
+      size: Vector2(size.x * 0.3, size.y * 0.5),
+    ));
+    return super.onLoad();
+  }
+
   void idle() {
     animation = idleAnimation;
   }
@@ -162,7 +178,9 @@ class PlayerCharacter extends SpriteAnimationComponent {
       loop: false,
     )
       ..onFrame = (frame) {
-        y = basePosition.y - (jumpHeight / 8) * (frame + 1);
+        final newY = basePosition.y - ((jumpHeight / 8) * (frame + 1));
+        y = newY >= (basePosition.y - jumpHeight) ? newY : basePosition.y;
+        // log('Jumping up - Height: $y');
       }
       ..onComplete = _jumpDown;
   }
@@ -174,8 +192,10 @@ class PlayerCharacter extends SpriteAnimationComponent {
       loop: false,
     )
       ..onFrame = (frame) {
-        final newY = y + (jumpHeight / 8) * (frame + 1);
-        y = newY < basePosition.y ? newY : basePosition.y;
+        final newY =
+            (basePosition.y - jumpHeight) + ((jumpHeight / 8) * (frame + 1));
+        y = newY <= basePosition.y ? newY : basePosition.y;
+        // log('Jumping down - Height: $y');
       }
       ..onComplete = run;
   }
