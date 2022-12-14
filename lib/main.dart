@@ -35,6 +35,11 @@ class WoodRunner extends FlameGame with TapDetector, HasCollisionDetection {
   late final Component floor;
   late final Component background;
   late final PlayerCharacter player;
+  Vector2 viewportSize = Vector2.zero();
+  double floorHeight = 0.0;
+
+  final double playerSpeed = 80;
+  final double playerSizeFactor = 0.2125;
 
   Future<void> initComponents() async {
     background = ParallaxComponent(
@@ -65,7 +70,7 @@ class WoodRunner extends FlameGame with TapDetector, HasCollisionDetection {
             velocityMultiplier: Vector2(2, 0),
           ),
         ],
-        baseVelocity: Vector2(60, 0),
+        baseVelocity: Vector2(playerSpeed * 0.8, 0),
       ),
     );
     floor = ParallaxComponent(
@@ -80,16 +85,24 @@ class WoodRunner extends FlameGame with TapDetector, HasCollisionDetection {
             velocityMultiplier: Vector2(2, 0),
           ),
         ],
-        size: Vector2(500, 100),
-        baseVelocity: Vector2(80, 0),
+        size: Vector2(viewportSize.x, floorHeight),
+        baseVelocity: Vector2(playerSpeed, 0),
       ),
-      position: Vector2(0, 820),
+      position: Vector2(0, viewportSize.y - floorHeight),
     );
     player = PlayerCharacter(
-      size: Vector2(200, 200),
-      position: Vector2(60, 620),
+      size: Vector2.all(viewportSize.y * playerSizeFactor),
+      position: Vector2(viewportSize.x * 0.075,
+          viewportSize.y - floorHeight - (viewportSize.y * playerSizeFactor)),
     );
     await player.init();
+  }
+
+  @override
+  void onGameResize(Vector2 canvasSize) {
+    viewportSize = canvasSize.clone();
+    floorHeight = viewportSize.y / 10;
+    super.onGameResize(canvasSize);
   }
 
   @override
@@ -114,6 +127,8 @@ class PlayerCharacter extends SpriteAnimationComponent with CollisionCallbacks {
   PlayerCharacter({
     super.size,
     super.position,
+    this.speed = 125 * 8,
+    this.jumpHeight = 80,
   }) {
     basePosition = position.clone();
   }
@@ -125,7 +140,8 @@ class PlayerCharacter extends SpriteAnimationComponent with CollisionCallbacks {
   late final SpriteAnimation runAnimation;
   late final SpriteAnimation attackAnimation;
 
-  final double jumpHeight = 80;
+  final double speed; //Milliseconds to complete on run animation
+  final double jumpHeight;
 
   Future<void> init() async {
     spriteSheet = SpriteSheet.fromColumnsAndRows(
