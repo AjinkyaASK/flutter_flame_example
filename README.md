@@ -1,16 +1,12 @@
-# flutter_game_tutorial_3
+# Steps to follow:
 
-A new Flutter project.
-
-## Getting Started
-
-This project is a starting point for a Flutter application.
-
-A few resources to get you started if this is your first Flutter project:
-
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
-
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+1. Create Flutter project
+2. Import all game assets and define in pubspec
+3. Create components of all assets
+4. Create a Game and plug into the widget tree
+5. Add all components to the Game
+6. Set position and size of each component
+7. Write repeatation logic
+8. Add collision detection
+9. Add score and game over logic
+10. Done!
