@@ -64,8 +64,11 @@ flutter:
   assets:
     - assets/images/
     - assets/images/background/
-    - assets/images/character/
     - assets/images/decorations/
+    - assets/images/character/
+    - assets/images/character/enemy/
+    - assets/images/character/enemy/FlyingEye/
+    - assets/images/character/enemy/Skeleton/
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware
