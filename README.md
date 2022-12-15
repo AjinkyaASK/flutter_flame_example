@@ -36,8 +36,8 @@
 
 ## References:
 
-[Download Royalty Free Game Assets]: http://itch.io/
-[Flame Engine Portal]: https://flame-engine.org/
+- [Download Royalty Free Game Assets](http://itch.io/)
+- [Flame Engine Portal](https://flame-engine.org/)
 
 
 ## Steps to follow:
