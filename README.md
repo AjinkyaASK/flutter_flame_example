@@ -1,22 +1,3 @@
-# References:
-
-[Download Royalty Free Game Assets]: http://itch.io/
-[Flame Engine Portal]: https://flame-engine.org/
-
-
-# Steps to follow:
-
-1. Create Flutter project
-2. Import all game assets and define in pubspec
-3. Create components of all assets
-4. Create a Game and plug into the widget tree
-5. Add all components to the Game
-6. Set position and size of each component
-7. Write repeatation logic
-8. Add collision detection
-9. Add score and game over logic
-10. Done!
-
 <h1 align="center">
   <br>
   Flutter Flame Example
@@ -52,6 +33,25 @@
 * Exit and restart the game at any point
 * Cross platform (iOS, Android, Web, MacOS, Windows & Linux!)
 * High Score (Coming Soon)
+
+## References:
+
+[Download Royalty Free Game Assets]: http://itch.io/
+[Flame Engine Portal]: https://flame-engine.org/
+
+
+## Steps to follow:
+
+1. Create Flutter project
+2. Import all game assets and define in pubspec
+3. Create components of all assets
+4. Create a Game and plug into the widget tree
+5. Add all components to the Game
+6. Set position and size of each component
+7. Write repeatation logic
+8. Add collision detection
+9. Add score and game over logic
+10. Done!
 
 ## Download
 
