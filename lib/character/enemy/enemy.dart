@@ -1,7 +1,8 @@
 import 'package:flame/collisions.dart';
 import 'package:flame/components.dart';
 import 'package:flame/sprite.dart';
-import 'package:flutter_game_tutorial_3/character/player.dart';
+
+import '../player.dart';
 
 enum EnemyState { idle, run, attack, die }
 
@@ -9,7 +10,9 @@ abstract class Enemy extends SpriteAnimationComponent with CollisionCallbacks {
   Enemy({
     super.size,
     super.position,
-    this.speed = 125 * 8,
+    this.animationSpeed = 125 * 8,
+    this.movementSpeed = 1,
+    this.baseVelocity = 0,
     this.flying = false,
     this.running = false,
     this.hitBoxSize,
@@ -23,7 +26,9 @@ abstract class Enemy extends SpriteAnimationComponent with CollisionCallbacks {
 
   late final Vector2 basePosition;
 
-  final double speed; //Milliseconds to complete on run animation
+  late double baseVelocity;
+  final double animationSpeed;
+  final double movementSpeed;
   final bool flying;
   final bool running;
   final Vector2? hitBoxSize;
@@ -45,9 +50,13 @@ abstract class Enemy extends SpriteAnimationComponent with CollisionCallbacks {
     );
     runAnimation = runSpriteSheet.createAnimation(
       row: 0,
-      stepTime: (speed / idleSpriteSheet.columns) / 1000,
+      stepTime: (animationSpeed / idleSpriteSheet.columns) / 1000,
     );
-    run();
+    if (running || flying) {
+      run();
+    } else {
+      idle();
+    }
   }
 
   @override
@@ -71,7 +80,16 @@ abstract class Enemy extends SpriteAnimationComponent with CollisionCallbacks {
   void update(double dt) {
     if (running || flying) {
       if (x > (size.x * -1)) {
-        x -= 1;
+        x -= movementSpeed;
+      } else {
+        x = basePosition.x;
+      }
+    } else {
+      final int avgFps = 1 ~/ (dt > 0 && dt.isFinite ? dt : 1.0);
+
+      // If in visible viewport
+      if (x >= (size.x * -1)) {
+        x -= (baseVelocity / avgFps);
       } else {
         x = basePosition.x;
       }
@@ -96,7 +114,7 @@ abstract class Enemy extends SpriteAnimationComponent with CollisionCallbacks {
         row: 0,
         stepTime: 0.125,
         loop: false,
-      )..onComplete = run;
+      )..onComplete = running || flying ? run : idle;
     }
   }
 }

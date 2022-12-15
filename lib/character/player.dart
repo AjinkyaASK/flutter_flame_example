@@ -125,7 +125,7 @@ class SwordGuy extends SpriteAnimationComponent with CollisionCallbacks {
       state = PlayerState.jump;
       animation = spriteSheet.createAnimation(
         row: 3,
-        stepTime: 0.125,
+        stepTime: 0.2,
         loop: false,
       )
         ..onFrame = (frame) {

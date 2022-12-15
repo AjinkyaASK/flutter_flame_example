@@ -9,28 +9,70 @@ import 'character/enemy/flying_eye.dart';
 import 'character/enemy/skeleton.dart';
 import 'character/obstacle/obstacle.dart';
 import 'character/player.dart';
+import 'screens/game_over_menu.dart';
+import 'screens/main_menu.dart';
+import 'screens/pause_menu.dart';
+import 'widgets/life_indicator.dart';
+import 'widgets/pause_button.dart';
 
 void main() {
   runApp(const MaterialApp(
     debugShowCheckedModeBanner: false,
-    home: MyApp(),
+    home: MainMenu(),
   ));
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+void exitGame(BuildContext context) {
+  Navigator.of(context).pushAndRemoveUntil(
+      MaterialPageRoute(builder: (context) => const MainMenu()), (_) => false);
+}
+
+class GameScreen extends StatelessWidget {
+  const GameScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return GameWidget(
+    return GameWidget<WoodRunner>(
       game: WoodRunner(),
+      overlayBuilderMap: {
+        'pause_menu': (context, game) {
+          return PauseMenu(
+            onResume: game.resumeGame,
+            onRestart: game.restartGame,
+            onExit: () => exitGame(context),
+          );
+        },
+        'game_over_menu': (context, game) {
+          return GameOverMenu(
+            onRestart: game.restartGame,
+            onExit: () => exitGame(context),
+          );
+        },
+        'pause_button': (context, game) {
+          return PauseButton(
+            onTap: game.pauseGame,
+          );
+        },
+        'hud': (context, game) {
+          return Align(
+              alignment: Alignment.topRight,
+              child: LifeIndicator(remainingLifesNotifier: game.life));
+        }
+      },
     );
   }
 }
 
+class Life {
+  Life({required this.remainingLifes, required this.totalLifes});
+
+  final int remainingLifes;
+  final int totalLifes;
+}
+
 class WoodRunner extends FlameGame with TapDetector, HasCollisionDetection {
   WoodRunner() {
-    // debugMode = true;
+    debugMode = true;
   }
 
   late final ParallaxComponent floor;
@@ -46,13 +88,67 @@ class WoodRunner extends FlameGame with TapDetector, HasCollisionDetection {
   Vector2 viewportSize = Vector2.zero();
   double floorHeight = 0.0;
 
-  double playerSpeed = 160;
+  double playerSpeed = 120;
   final double playerSizeFactor = 0.35;
   final double smallEnemySizeFactor = 0.45;
   final double mediumEnemySizeFactor = 0.53;
   final double largeEnemySizeFactor = 0.75;
 
   final double obstacleSizeFactor = 0.125;
+
+  final ValueNotifier<Life> life =
+      ValueNotifier(Life(remainingLifes: totalLifes, totalLifes: totalLifes));
+
+  static const List<String> overlayIdentifiers = [
+    'pause_button',
+    'pause_menu',
+    'hud',
+    'game_over_menu'
+  ];
+
+  final pauseButtonIdentifier = overlayIdentifiers[0];
+  final pauseMenuIdentifier = overlayIdentifiers[1];
+  final hudIdentifier = overlayIdentifiers[2];
+  final gameOverMenuIdentifier = overlayIdentifiers[3];
+
+  int score = 0;
+  static const int totalLifes = 3;
+
+  void onEnemyHit() {
+    if (life.value.remainingLifes > 0) {
+      life.value = Life(
+          remainingLifes: life.value.remainingLifes - 1,
+          totalLifes: life.value.totalLifes);
+    } else {
+      onGameOver();
+    }
+  }
+
+  void resumeGame() {
+    if (paused) {
+      overlays.remove(pauseMenuIdentifier);
+      overlays.remove(gameOverMenuIdentifier);
+      resumeEngine();
+    }
+  }
+
+  void pauseGame() {
+    if (!paused) {
+      pauseEngine();
+      overlays.add(pauseMenuIdentifier);
+    }
+  }
+
+  void onGameOver() {
+    pauseEngine();
+    overlays.add(gameOverMenuIdentifier);
+  }
+
+  void restartGame() {
+    score = 0;
+    life.value = Life(remainingLifes: totalLifes, totalLifes: totalLifes);
+    resumeGame();
+  }
 
   Future<void> initComponents() async {
     background = ParallaxComponent(
@@ -104,6 +200,7 @@ class WoodRunner extends FlameGame with TapDetector, HasCollisionDetection {
     );
     player = SwordGuy(
       speed: playerSpeed,
+      jumpHeight: 120.0,
       size: Vector2.all(viewportSize.y * playerSizeFactor),
       position: Vector2(viewportSize.x * 0.075,
           viewportSize.y - floorHeight - (viewportSize.y * playerSizeFactor)),
@@ -112,17 +209,9 @@ class WoodRunner extends FlameGame with TapDetector, HasCollisionDetection {
       hitBoxPosition: Vector2(viewportSize.y * playerSizeFactor * 0.35,
           viewportSize.y * playerSizeFactor * 0.45),
       onHurt: () {
-        // playerSpeed = 0;
-        // background.parallax!.baseVelocity = Vector2(playerSpeed * 0.8, 0);
-        // floor.parallax!.baseVelocity = Vector2(playerSpeed, 0);
-        // stone.baseVelocity = 0.0;
+        onEnemyHit();
       },
-      onRun: () {
-        // playerSpeed = 160;
-        // background.parallax!.baseVelocity = Vector2(playerSpeed * 0.8, 0);
-        // floor.parallax!.baseVelocity = Vector2(playerSpeed, 0);
-        // stone.baseVelocity = playerSpeed;
-      },
+      onRun: () {},
       onJump: () {},
       onAttack: () {},
       onDie: () {
@@ -132,22 +221,25 @@ class WoodRunner extends FlameGame with TapDetector, HasCollisionDetection {
       },
     );
     flyingEyeEnemy = await FlyingEyeEnemy.create(
-      speed: 125 * 4,
+      animationSpeed: 125 * 4,
+      movementSpeed: 3,
+      baseVelocity: playerSpeed,
       size: Vector2.all(viewportSize.y * smallEnemySizeFactor),
       position: Vector2(
-          viewportSize.x * 1,
+          viewportSize.x * 1.5,
           viewportSize.y -
               floorHeight -
               (viewportSize.y * smallEnemySizeFactor * 1.25)),
       hitBoxSize: Vector2(viewportSize.y * smallEnemySizeFactor * 0.25,
           viewportSize.y * smallEnemySizeFactor * 0.2),
-      hitBoxPosition: Vector2(viewportSize.y * smallEnemySizeFactor * 0.35,
+      hitBoxPosition: Vector2(viewportSize.y * smallEnemySizeFactor * 0.2,
           viewportSize.y * smallEnemySizeFactor * 0.4125),
     );
     skeletonEnemy = await SkeletonEnemy.create(
       size: Vector2.all(viewportSize.y * mediumEnemySizeFactor),
+      baseVelocity: playerSpeed,
       position: Vector2(
-          viewportSize.x * 0.5, //1.25,
+          viewportSize.x * 1.25,
           viewportSize.y -
               floorHeight -
               (viewportSize.y * mediumEnemySizeFactor) +
@@ -163,7 +255,7 @@ class WoodRunner extends FlameGame with TapDetector, HasCollisionDetection {
       size: Vector2(viewportSize.y * obstacleSizeFactor,
           viewportSize.y * obstacleSizeFactor * 0.5),
       position: Vector2(
-          viewportSize.x * 0.5,
+          viewportSize.x * 0.85,
           viewportSize.y -
               floorHeight -
               (viewportSize.y * obstacleSizeFactor * 0.5)),
@@ -193,6 +285,8 @@ class WoodRunner extends FlameGame with TapDetector, HasCollisionDetection {
     add(flyingEyeEnemy);
     add(skeletonEnemy);
     add(stone);
+    overlays.add(pauseButtonIdentifier);
+    overlays.add(hudIdentifier);
 
     return super.onLoad();
   }

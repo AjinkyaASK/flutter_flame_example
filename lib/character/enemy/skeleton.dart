@@ -10,7 +10,9 @@ class SkeletonEnemy extends Enemy {
   SkeletonEnemy({
     super.size,
     super.position,
-    super.speed,
+    super.animationSpeed,
+    super.movementSpeed,
+    super.baseVelocity,
     super.hitBoxSize,
     super.hitBoxPosition,
     required super.idleSpriteSheet,
@@ -25,11 +27,15 @@ class SkeletonEnemy extends Enemy {
     required Vector2 position,
     required Vector2 hitBoxSize,
     required Vector2 hitBoxPosition,
-    double speed = 125 * 8,
+    double animationSpeed = 125 * 8,
+    double movementSpeed = 1,
+    double baseVelocity = 0,
   }) async {
     final object = SkeletonEnemy(
       size: size,
-      speed: speed,
+      animationSpeed: animationSpeed,
+      movementSpeed: movementSpeed,
+      baseVelocity: baseVelocity,
       position: position,
       hitBoxSize: hitBoxSize,
       hitBoxPosition: hitBoxPosition,
