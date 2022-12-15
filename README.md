@@ -1,3 +1,8 @@
+# References:
+[Download Royalty Free Game Assets]: http://itch.io/
+[Flame Engine Portal]: https://flame-engine.org/
+
+
 # Steps to follow:
 
 1. Create Flutter project
